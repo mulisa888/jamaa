@@ -1,0 +1,36 @@
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Python-generated files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Test, coverage, and build output
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Kivy and local application data
+.kivy/
+*.log
+
+# Local configuration and secrets
+*.local
+*.secret
+secrets.json
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
