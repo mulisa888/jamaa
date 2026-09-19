@@ -1,0 +1,556 @@
+#:<HomeScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        
+        # Top Bar
+        BoxLayout:
+            size_hint_y: None
+            height: "60dp"
+            padding: ["15dp", "10dp"]
+            spacing: "10dp"
+            
+            canvas.before:
+                Color:
+                    rgba: 0.15, 0.45, 0.75, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Button:
+                text: app.user_avatar
+                size_hint_x: None
+                width: "45dp"
+                font_size: "16sp"
+                background_color: 0.15, 0.45, 0.75, 1
+                on_release: app.open_profile()
+            
+            Label:
+                text: "Jamaa"
+                font_size: "24sp"
+                bold: True
+                color: 1, 1, 1, 1
+                halign: "left"
+                text_size: self.size
+                valign: "middle"
+            
+            BoxLayout:
+                size_hint_x: None
+                width: "140dp"
+                
+                Button:
+                    text: "Groups"
+                    font_size: "11sp"
+                    background_color: 0.1, 0.55, 0.3, 1
+                    on_release: app.open_group_interaction()
+            
+            Button:
+                text: "Requests"
+                size_hint_x: None
+                width: "70dp"
+                font_size: "11sp"
+                background_color: 0.85, 0.55, 0.15, 1
+                on_release: app.open_contact_requests()
+            
+            Button:
+                text: "+"
+                size_hint_x: None
+                width: "40dp"
+                font_size: "22sp"
+                background_color: 0.2, 0.75, 0.5, 1
+                on_release: root.show_add_menu()
+        
+        # Notification Banner
+        BoxLayout:
+            size_hint_y: None
+            height: "35dp" if app.notification_count > 0 else 0
+            padding: "10dp"
+            
+            canvas.before:
+                Color:
+                    rgba: 0.9, 0.55, 0.15, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Label:
+                text: f"You have {app.notification_count} pending request(s)" if app.notification_count > 0 else ""
+                font_size: "13sp"
+                color: 1, 1, 1, 1
+                on_touch_down: app.open_contact_requests() if self.collide_point(*args[1].pos) else None
+        
+        # Import Status
+        BoxLayout:
+            size_hint_y: None
+            height: "30dp" if app.import_status else 0
+            
+            canvas.before:
+                Color:
+                    rgba: 0.15, 0.55, 0.3, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Label:
+                text: app.import_status
+                font_size: "13sp"
+                color: 1, 1, 1, 1
+        
+        # Filter Tabs
+        BoxLayout:
+            size_hint_y: None
+            height: "45dp"
+            padding: ["10dp", "5dp"]
+            spacing: "8dp"
+            
+            canvas.before:
+                Color:
+                    rgba: 0.94, 0.94, 0.96, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            FilterButton:
+                text: "All"
+                on_release: root.filter_contacts("all")
+            
+            FilterButton:
+                text: "Family"
+                on_release: root.filter_contacts("family")
+            
+            FilterButton:
+                text: "Friends"
+                on_release: root.filter_contacts("friends")
+            
+            FilterButton:
+                text: "Groups"
+                on_release: root.filter_contacts("groups")
+        
+        # Search
+        BoxLayout:
+            size_hint_y: None
+            height: "50dp"
+            padding: ["12dp", "8dp"]
+            
+            TextInput:
+                hint_text: "Search..."
+                multiline: False
+                size_hint_y: None
+                height: "38dp"
+                padding: ["12dp", "10dp"]
+                font_size: "14sp"
+                background_color: 0.92, 0.92, 0.95, 1
+        
+        # Contacts List
+        RecycleView:
+            id: contacts_rv
+            data: [{"text": item["name"], "secondary_text": item["last_message"], "tertiary_text": item["time"], "unread": item["unread"], "is_group": item.get("is_group", False), "category": item.get("category", "friends"), "is_blocked": item.get("is_blocked", False)} for item in app.contacts]
+            viewclass: "ContactItem"
+            RecycleBoxLayout:
+                default_size_hint: 1, None
+                default_size: None, "75dp"
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: "vertical"
+                spacing: "2dp"
+
+
+<FilterButton@Button>:
+    size_hint_x: None
+    width: "75dp"
+    font_size: "12sp"
+    background_color: 0.85, 0.85, 0.9, 1
+    color: 0.3, 0.3, 0.3, 1
+
+
+<ContactItem@BoxLayout>:
+    size_hint_y: None
+    height: "75dp"
+    padding: ["12dp", "8dp"]
+    spacing: "12dp"
+    
+    canvas.before:
+        Color:
+            rgba: (0.95, 0.95, 0.97, 1) if not root.is_blocked else (0.92, 0.88, 0.88, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    
+    on_release: app.open_chat(root.text) if not root.is_blocked else None
+    
+    # Avatar
+    BoxLayout:
+        size_hint_x: None
+        width: "50dp"
+        
+        canvas.before:
+            Color:
+                rgba: (0.85, 0.35, 0.35, 1) if root.category == "family" else (0.3, 0.55, 0.85, 1) if root.category == "friends" else (0.3, 0.75, 0.45, 1) if root.is_group else (0.5, 0.5, 0.5, 1)
+            Ellipse:
+                pos: self.pos
+                size: self.size
+        
+        Label:
+            text: root.text[0] if root.text else "?"
+            font_size: "20sp"
+            bold: True
+            color: 1, 1, 1, 1
+    
+    # Info
+    BoxLayout:
+        orientation: "vertical"
+        spacing: "2dp"
+        
+        BoxLayout:
+            Label:
+                text: root.text
+                font_size: "15sp"
+                bold: True
+                halign: "left"
+                text_size: self.size
+                valign: "middle"
+            
+            Label:
+                text: "[Group]" if root.is_group else "[Blocked]" if root.is_blocked else ""
+                font_size: "11sp"
+                color: (0.5, 0.5, 0.5, 1) if root.is_group else (0.8, 0.3, 0.3, 1)
+                size_hint_x: None
+                width: "60dp"
+        
+        Label:
+            text: root.secondary_text
+            font_size: "13sp"
+            color: 0.55, 0.55, 0.55, 1
+            halign: "left"
+            text_size: self.size
+            valign: "middle"
+    
+    # Time & Badge
+    BoxLayout:
+        orientation: "vertical"
+        size_hint_x: None
+        width: "70dp"
+        spacing: "2dp"
+        
+        Label:
+            text: root.tertiary_text
+            font_size: "11sp"
+            color: 0.6, 0.6, 0.6, 1
+        
+        Widget:
+            size_hint_y: 1
+        
+        BoxLayout:
+            size_hint_y: None
+            height: "22dp"
+            
+            Widget:
+                size_hint_x: 1
+            
+            Label:
+                text: str(root.unread) if root.unread > 0 else ""
+                font_size: "12sp"
+                bold: True
+                color: 1, 1, 1, 1
+                size_hint_x: None
+                width: "22dp"
+                
+                canvas.before:
+                    Color:
+                        rgba: (0.2, 0.75, 0.45, 1) if root.unread > 0 else (0, 0, 0, 0)
+                    Ellipse:
+                        pos: self.pos
+                        size: self.size
+            
+            Widget:
+                size_hint_x: 0.5
+
+
+#:<ChatScreen>:
+    BoxLayout:
+        orientation: "vertical"
+        
+        # Header
+        BoxLayout:
+            size_hint_y: None
+            height: "55dp"
+            padding: ["12dp", "8dp"]
+            spacing: "10dp"
+            
+            canvas.before:
+                Color:
+                    rgba: 0.15, 0.45, 0.75, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Button:
+                text: "<"
+                size_hint_x: None
+                width: "38dp"
+                font_size: "18sp"
+                background_color: 0.1, 0.4, 0.7, 1
+                on_release: app.go_home()
+            
+            Label:
+                text: app.current_chat
+                font_size: "17sp"
+                bold: True
+                color: 1, 1, 1, 1
+                halign: "left"
+                text_size: self.size
+                valign: "middle"
+            
+            Button:
+                text: "Invite"
+                size_hint_x: None
+                width: "65dp"
+                font_size: "12sp"
+                background_color: 0.1, 0.65, 0.35, 1
+                on_release: app.open_contact_requests()
+            
+            Button:
+                text: "Call"
+                size_hint_x: None
+                width: "55dp"
+                font_size: "13sp"
+                background_color: 0.2, 0.7, 0.4, 1
+                on_release: app.start_video_call(app.current_chat)
+            
+            Button:
+                text: "Video"
+                size_hint_x: None
+                width: "55dp"
+                font_size: "13sp"
+                background_color: 0.15, 0.55, 0.85, 1
+                on_release: app.start_video_call(app.current_chat)
+        
+        # Messages
+        RecycleView:
+            data: [{"text": msg["text"], "is_me": msg["is_me"], "time": msg["time"], "sender": msg["sender"], "msg_type": msg.get("type", "text"), "is_encrypted": msg.get("is_encrypted", False)} for msg in app.messages]
+            viewclass: "MessageBubble"
+            RecycleBoxLayout:
+                default_size_hint: 1, None
+                default_size: None, "60dp"
+                size_hint_y: None
+                height: self.minimum_height
+                orientation: "vertical"
+                padding: "12dp"
+                spacing: "4dp"
+        
+        # Recording indicator
+        BoxLayout:
+            size_hint_y: None
+            height: "35dp" if app.is_recording else 0
+            padding: "10dp"
+            spacing: "10dp"
+            
+            canvas.before:
+                Color:
+                    rgba: 0.9, 0.2, 0.2, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Label:
+                text: f"Recording... {app.recording_duration}"
+                font_size: "14sp"
+                color: 1, 1, 1, 1
+            
+            Button:
+                text: "Stop"
+                size_hint_x: None
+                width: "60dp"
+                font_size: "12sp"
+                on_release: app.stop_recording()
+        
+        # Emoji Picker (toggle)
+        BoxLayout:
+            size_hint_y: None
+            height: "40dp" if root.show_emoji else 0
+            padding: "5dp"
+            spacing: "3dp"
+            
+            canvas.before:
+                Color:
+                    rgba: 0.95, 0.95, 0.97, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Button:
+                text: "😀"
+                font_size: "18sp"
+                on_release: root.insert_emoji("😀")
+            
+            Button:
+                text: "😂"
+                font_size: "18sp"
+                on_release: root.insert_emoji("😂")
+            
+            Button:
+                text: "❤️"
+                font_size: "18sp"
+                on_release: root.insert_emoji("❤️")
+            
+            Button:
+                text: "👍"
+                font_size: "18sp"
+                on_release: root.insert_emoji("👍")
+            
+            Button:
+                text: "🎉"
+                font_size: "18sp"
+                on_release: root.insert_emoji("🎉")
+            
+            Button:
+                text: "😢"
+                font_size: "18sp"
+                on_release: root.insert_emoji("😢")
+            
+            Button:
+                text: "🔥"
+                font_size: "18sp"
+                on_release: root.insert_emoji("🔥")
+            
+            Button:
+                text: "💯"
+                font_size: "18sp"
+                on_release: root.insert_emoji("💯")
+        
+        # Input Area
+        BoxLayout:
+            size_hint_y: None
+            height: "58dp"
+            padding: ["10dp", "8dp"]
+            spacing: "8dp"
+            
+            canvas.before:
+                Color:
+                    rgba: 0.96, 0.96, 0.98, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Button:
+                text: "😊"
+                size_hint_x: None
+                width: "40dp"
+                font_size: "18sp"
+                on_release: root.toggle_emoji()
+            
+            Button:
+                text: "🎤"
+                size_hint_x: None
+                width: "40dp"
+                font_size: "18sp"
+                on_release: root.start_voice_recording()
+            
+            Button:
+                text: "📎"
+                size_hint_x: None
+                width: "40dp"
+                font_size: "18sp"
+                on_release: root.attach_media()
+            
+            TextInput:
+                id: message_input
+                hint_text: "Type a message..."
+                multiline: False
+                size_hint_y: None
+                height: "42dp"
+                padding: ["12dp", "12dp"]
+                font_size: "15sp"
+                background_color: 1, 1, 1, 1
+            
+            Button:
+                text: "Send"
+                size_hint_x: None
+                width: "65dp"
+                font_size: "14sp"
+                bold: True
+                background_color: 0.15, 0.6, 0.35, 1
+                on_release: app.send_message(message_input.text); message_input.text = ""
+
+
+<MessageBubble@BoxLayout>:
+    size_hint_y: None
+    height: max(60, len(root.text) // 30 * 20 + 45)
+    padding: "4dp"
+    spacing: "6dp"
+    
+    Widget:
+        size_hint_x: 0.15 if root.is_me else 0
+        width: 0
+    
+    BoxLayout:
+        orientation: "vertical"
+        size_hint_y: None
+        height: self.minimum_height
+        padding: ["10dp", "8dp"]
+        spacing: "2dp"
+        
+        canvas.before:
+            Color:
+                rgba: (0.18, 0.55, 0.85, 1) if root.is_me else (0.92, 0.92, 0.95, 1)
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [12]
+        
+        Label:
+            text: root.sender if not root.is_me else ""
+            font_size: "11sp"
+            color: 0.4, 0.4, 0.4, 1
+            halign: "left"
+            text_size: self.size
+            valign: "middle"
+            size_hint_y: None
+            height: "16dp" if not root.is_me else 0
+        
+        # Message Type Indicator
+        BoxLayout:
+            size_hint_y: None
+            height: "18dp" if root.msg_type != "text" else 0
+            
+            Label:
+                text: "[Voice Note]" if root.msg_type == "voice" else "[Media]" if root.msg_type == "media" else ""
+                font_size: "11sp"
+                color: (0.8, 0.9, 1, 1) if root.is_me else (0.3, 0.5, 0.8, 1)
+                halign: "left"
+                text_size: self.size
+        
+        Label:
+            text: root.text
+            font_size: "14sp"
+            color: (1, 1, 1, 1) if root.is_me else (0.15, 0.15, 0.15, 1)
+            halign: "left" if not root.is_me else "right"
+            text_size: self.size
+            valign: "top"
+            size_hint_y: None
+            height: self.texture_size[1] + 10
+        
+        # Encryption Indicator
+        BoxLayout:
+            size_hint_y: None
+            height: "14dp" if root.is_encrypted else 0
+            
+            Label:
+                text: "[Encrypted]" if root.is_encrypted else ""
+                font_size: "9sp"
+                color: (0.7, 0.85, 1, 1) if root.is_me else (0.5, 0.7, 0.9, 1)
+                halign: "right"
+                text_size: self.size
+        
+        Label:
+            text: root.time
+            font_size: "10sp"
+            color: (0.8, 0.85, 0.9, 1) if root.is_me else (0.6, 0.6, 0.6, 1)
+            halign: "right"
+            text_size: self.size
+            valign: "middle"
+            size_hint_y: None
+            height: "14dp"
+    
+    Widget:
+        size_hint_x: 0.15 if not root.is_me else 0
+        width: 0
