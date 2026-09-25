@@ -1,8 +1,7 @@
-from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, BooleanProperty
+from utils.file_io import StorageManager
+from utils.validators import Validator
 
-
-class MessageBubble(BoxLayout):
-    message_text = StringProperty("")
-    is_me = BooleanProperty(False)
-    time = StringProperty("")
+try:
+    from utils.encryption import EncryptionManager
+except ImportError:
+    EncryptionManager = None

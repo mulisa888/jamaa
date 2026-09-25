@@ -324,9 +324,10 @@
                 background_color: 0.15, 0.55, 0.85, 1
                 on_release: app.start_video_call(app.current_chat)
         
-        # Messages
+        # Messages - filtered by current_chat
         RecycleView:
-            data: [{"text": msg["text"], "is_me": msg["is_me"], "time": msg["time"], "sender": msg["sender"], "msg_type": msg.get("type", "text"), "is_encrypted": msg.get("is_encrypted", False)} for msg in app.messages]
+            id: messages_rv
+            data: [{"text": msg["text"], "is_me": msg["is_me"], "time": msg["time"], "sender": msg["sender"], "msg_type": msg.get("type", "text"), "is_encrypted": msg.get("is_encrypted", False), "msg_index": idx} for idx, msg in enumerate(app.get_chat_messages())]
             viewclass: "MessageBubble"
             RecycleBoxLayout:
                 default_size_hint: 1, None
@@ -336,6 +337,28 @@
                 orientation: "vertical"
                 padding: "12dp"
                 spacing: "4dp"
+        
+        # Typing indicator
+        BoxLayout:
+            size_hint_y: None
+            height: "28dp" if root.is_typing else 0
+            padding: ["15dp", "2dp"]
+            
+            canvas.before:
+                Color:
+                    rgba: 0.93, 0.93, 0.96, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            
+            Label:
+                text: "typing..." if root.is_typing else ""
+                font_size: "12sp"
+                color: 0.5, 0.5, 0.5, 1
+                halign: "left"
+                text_size: self.size
+                valign: "middle"
+                italic: True
         
         # Recording indicator
         BoxLayout:
@@ -363,12 +386,11 @@
                 font_size: "12sp"
                 on_release: app.stop_recording()
         
-        # Emoji Picker (toggle)
+        # Emoji Picker (expanded, scrollable)
         BoxLayout:
             size_hint_y: None
-            height: "40dp" if root.show_emoji else 0
-            padding: "5dp"
-            spacing: "3dp"
+            height: "110dp" if root.show_emoji else 0
+            padding: "4dp"
             
             canvas.before:
                 Color:
@@ -377,45 +399,138 @@
                     pos: self.pos
                     size: self.size
             
-            Button:
-                text: "😀"
-                font_size: "18sp"
-                on_release: root.insert_emoji("😀")
-            
-            Button:
-                text: "😂"
-                font_size: "18sp"
-                on_release: root.insert_emoji("😂")
-            
-            Button:
-                text: "❤️"
-                font_size: "18sp"
-                on_release: root.insert_emoji("❤️")
-            
-            Button:
-                text: "👍"
-                font_size: "18sp"
-                on_release: root.insert_emoji("👍")
-            
-            Button:
-                text: "🎉"
-                font_size: "18sp"
-                on_release: root.insert_emoji("🎉")
-            
-            Button:
-                text: "😢"
-                font_size: "18sp"
-                on_release: root.insert_emoji("😢")
-            
-            Button:
-                text: "🔥"
-                font_size: "18sp"
-                on_release: root.insert_emoji("🔥")
-            
-            Button:
-                text: "💯"
-                font_size: "18sp"
-                on_release: root.insert_emoji("💯")
+            ScrollView:
+                do_scroll_x: True
+                do_scroll_y: False
+                bar_width: "3dp"
+                
+                GridLayout:
+                    cols: 10
+                    size_hint_x: None
+                    width: self.minimum_width
+                    spacing: "2dp"
+                    padding: "2dp"
+                    
+                    Button:
+                        text: "😀"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("😀")
+                    Button:
+                        text: "😂"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("😂")
+                    Button:
+                        text: "😍"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("😍")
+                    Button:
+                        text: "🥰"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("🥰")
+                    Button:
+                        text: "😎"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("😎")
+                    Button:
+                        text: "🤔"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("🤔")
+                    Button:
+                        text: "😢"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("😢")
+                    Button:
+                        text: "😡"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("😡")
+                    Button:
+                        text: "🤗"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("🤗")
+                    Button:
+                        text: "😴"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("😴")
+                    Button:
+                        text: "❤️"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("❤️")
+                    Button:
+                        text: "🔥"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("🔥")
+                    Button:
+                        text: "💯"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("💯")
+                    Button:
+                        text: "👍"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("👍")
+                    Button:
+                        text: "👎"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("👎")
+                    Button:
+                        text: "🙏"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("🙏")
+                    Button:
+                        text: "🎉"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("🎉")
+                    Button:
+                        text: "✨"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("✨")
+                    Button:
+                        text: "💪"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("💪")
+                    Button:
+                        text: "🙌"
+                        font_size: "18sp"
+                        size_hint: None, None
+                        size: "36dp", "36dp"
+                        on_release: root.insert_emoji("🙌")
         
         # Input Area
         BoxLayout:
@@ -461,6 +576,7 @@
                 padding: ["12dp", "12dp"]
                 font_size: "15sp"
                 background_color: 1, 1, 1, 1
+                on_text: root.on_text_change(self.text)
             
             Button:
                 text: "Send"
@@ -469,7 +585,7 @@
                 font_size: "14sp"
                 bold: True
                 background_color: 0.15, 0.6, 0.35, 1
-                on_release: app.send_message(message_input.text); message_input.text = ""
+                on_release: root.send_message()
 
 
 <MessageBubble@BoxLayout>:
@@ -477,6 +593,8 @@
     height: max(60, len(root.text) // 30 * 20 + 45)
     padding: "4dp"
     spacing: "6dp"
+    
+    msg_index: 0
     
     Widget:
         size_hint_x: 0.15 if root.is_me else 0
